@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Provider Workboard",
+    "slug": "provider-workboard",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Provider Workboard uses the camera to capture evidence photos and verify equipment asset codes.",
+        "NSLocationWhenInUseUsageDescription": "Provider Workboard attaches your location to captured evidence to record where service was performed.",
+        "NSMotionUsageDescription": "Provider Workboard uses the accelerometer to detect rough equipment handling during a short stability check."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Provider Workboard to use your camera for evidence capture and asset verification."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Provider Workboard to attach your location to captured evidence."
+        }
+      ]
+    ]
+  }
+}
