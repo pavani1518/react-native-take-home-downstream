@@ -16,6 +16,13 @@ import { Badge } from "./Badge";
 import { formatVisitTime } from "./format";
 import { VisitDetailSheet } from "./VisitDetailSheet";
 import {
+  Section,
+  SheetHeader,
+  colors,
+  toneForPriority,
+  toneForVisitStatus,
+} from "./ui";
+import {
   isSiteLate,
   nextVisit,
   siteMissingEvidenceCount,
@@ -72,21 +79,11 @@ export function SiteDetailSheet({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.sheet} edges={["top", "left", "right", "bottom"]}>
-        <View style={styles.headerBar}>
-          <Pressable
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel="Close site details"
-            style={({ pressed }) => [styles.closeBtn, pressed && styles.pressed]}
-            hitSlop={10}
-          >
-            <Text style={styles.closeText}>Close</Text>
-          </Pressable>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {site.siteName}
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <SheetHeader
+          title={site.siteName}
+          onClose={onClose}
+          accessibilityLabel="Close site details"
+        />
 
         <ScrollView contentContainerStyle={styles.body}>
           <Text style={styles.customer}>{site.customerName}</Text>
@@ -99,7 +96,7 @@ export function SiteDetailSheet({
           </Text>
 
           <View style={styles.badgeRow}>
-            <Badge tone={site.priority === "urgent" ? "danger" : site.priority === "high" ? "warn" : "neutral"}>
+            <Badge tone={toneForPriority(site.priority)}>
               {site.priority.toUpperCase()}
             </Badge>
             <Badge>{site.workStatus.replace("_", " ")}</Badge>
@@ -164,7 +161,7 @@ export function SiteDetailSheet({
                     {formatVisitTime(v.scheduledStart, now)} · {v.serviceType}
                   </Text>
                 </View>
-                <Badge tone={toneForVisit(v.status)}>{v.status.replace("_", " ")}</Badge>
+                <Badge tone={toneForVisitStatus(v.status)}>{v.status.replace("_", " ")}</Badge>
               </Pressable>
             ))}
           </Section>
@@ -183,15 +180,6 @@ export function SiteDetailSheet({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
-  );
-}
-
 function summarize(c: ReturnType<typeof visitStatusCounts>): string {
   return Object.entries(c)
     .filter(([, n]) => n > 0)
@@ -199,57 +187,8 @@ function summarize(c: ReturnType<typeof visitStatusCounts>): string {
     .join(" · ");
 }
 
-function toneForVisit(
-  s: ServiceVisit["status"]
-): "neutral" | "info" | "warn" | "danger" | "success" {
-  switch (s) {
-    case "blocked":
-      return "danger";
-    case "completed":
-      return "success";
-    case "cancelled":
-      return "neutral";
-    case "en_route":
-    case "on_site":
-      return "info";
-    default:
-      return "neutral";
-  }
-}
-
 const styles = StyleSheet.create({
-  sheet: { flex: 1, backgroundColor: "#FFFFFF" },
-  headerBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
-    flex: 1,
-    textAlign: "center",
-  },
-  headerSpacer: {
-    width: 60,
-    minHeight: 44,
-  },
-  closeBtn: {
-    minWidth: 60,
-    minHeight: 44,
-    paddingHorizontal: 12,
-    justifyContent: "center",
-    alignItems: "flex-start",
-  },
-  closeText: {
-    color: "#1E40AF",
-    fontWeight: "700",
-  },
+  sheet: { flex: 1, backgroundColor: colors.background },
   pressed: { opacity: 0.6 },
   body: {
     padding: 16,
@@ -257,17 +196,17 @@ const styles = StyleSheet.create({
   },
   customer: {
     fontSize: 14,
-    color: "#6B7280",
+    color: colors.textSubtle,
     fontWeight: "600",
   },
   address: {
     fontSize: 14,
-    color: "#374151",
+    color: colors.textMuted,
     marginTop: 4,
   },
   contact: {
     fontSize: 13,
-    color: "#6B7280",
+    color: colors.textSubtle,
     marginTop: 4,
   },
   badgeRow: {
@@ -276,33 +215,22 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 12,
   },
-  section: {
-    marginTop: 18,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    color: "#6B7280",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 6,
-    fontWeight: "700",
-  },
   sentence: {
     fontSize: 15,
-    color: "#111827",
+    color: colors.text,
   },
   bodyText: {
     fontSize: 14,
-    color: "#374151",
+    color: colors.textMuted,
   },
   warn: {
     fontSize: 13,
-    color: "#92400E",
+    color: colors.warn,
     marginTop: 2,
   },
   counts: {
     fontSize: 12,
-    color: "#6B7280",
+    color: colors.textSubtle,
     marginBottom: 8,
   },
   visitItem: {
@@ -310,18 +238,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: colors.dividerLight,
     gap: 8,
     minHeight: 56,
   },
   visitTitle: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#111827",
+    color: colors.text,
   },
   visitMeta: {
     fontSize: 12,
-    color: "#6B7280",
+    color: colors.textSubtle,
     marginTop: 2,
   },
 });

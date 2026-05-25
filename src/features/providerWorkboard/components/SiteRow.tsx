@@ -4,6 +4,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Badge } from "./Badge";
 import { formatNextTime } from "./format";
+import { colors, toneForPriority, toneForWorkStatus } from "./ui";
 import {
   isSiteLate,
   nextVisit,
@@ -53,11 +54,11 @@ export function SiteRow({
 
       <View style={styles.badgeRow}>
         {site.priority !== "normal" && (
-          <Badge tone={site.priority === "urgent" ? "danger" : "warn"}>
+          <Badge tone={toneForPriority(site.priority)}>
             {site.priority.toUpperCase()}
           </Badge>
         )}
-        <Badge tone={toneForStatus(site.workStatus)}>
+        <Badge tone={toneForWorkStatus(site.workStatus)}>
           {site.workStatus.replace("_", " ")}
         </Badge>
         {late && <Badge tone="danger">LATE</Badge>}
@@ -74,23 +75,6 @@ export function SiteRow({
       </View>
     </Pressable>
   );
-}
-
-function toneForStatus(
-  s: ServiceSite["workStatus"]
-): "neutral" | "info" | "warn" | "danger" | "success" {
-  switch (s) {
-    case "blocked":
-      return "danger";
-    case "needs_attention":
-      return "warn";
-    case "in_progress":
-      return "info";
-    case "completed":
-      return "success";
-    default:
-      return "neutral";
-  }
 }
 
 function compactCounts(
@@ -111,13 +95,13 @@ const styles = StyleSheet.create({
   row: {
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: colors.dividerLight,
     minHeight: 88,
   },
   rowPressed: {
-    backgroundColor: "#F9FAFB",
+    backgroundColor: colors.surfaceMuted,
   },
   headerLine: {
     flexDirection: "row",
@@ -128,17 +112,17 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.text,
   },
   customer: {
     fontSize: 13,
-    color: "#6B7280",
+    color: colors.textSubtle,
     marginLeft: 8,
     maxWidth: 140,
   },
   address: {
     fontSize: 13,
-    color: "#6B7280",
+    color: colors.textSubtle,
     marginTop: 2,
   },
   badgeRow: {
@@ -155,11 +139,11 @@ const styles = StyleSheet.create({
   },
   next: {
     fontSize: 12,
-    color: "#374151",
+    color: colors.textMuted,
     fontWeight: "600",
   },
   counts: {
     fontSize: 11,
-    color: "#6B7280",
+    color: colors.textSubtle,
   },
 });

@@ -5,13 +5,7 @@
 
 import { CameraView } from "expo-camera";
 import React, { useRef, useState } from "react";
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 import { track } from "../analytics";
 import {
@@ -19,6 +13,7 @@ import {
   type PermissionState,
 } from "../native/permissions";
 import { useCameraPermissionState } from "../native/useCameraPermission";
+import { Button, colors } from "./ui";
 
 type Phase = "idle" | "framing" | "preview";
 
@@ -90,44 +85,34 @@ export function CameraCapture({
               Camera permission is denied. Open settings to allow camera access,
               or use the simulated capture fallback below.
             </Text>
-            <Pressable
-              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+            <Button
+              variant="secondary"
+              label="Open settings"
               onPress={openAppSettings}
-              accessibilityRole="button"
               accessibilityLabel="Open device settings"
-            >
-              <Text style={styles.secondaryText}>Open settings</Text>
-            </Pressable>
+            />
           </View>
         )}
         <View style={styles.btnRow}>
-          <Pressable
-            style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+          <Button
+            variant="primary"
+            label={state === "granted" ? "Open camera" : "Request camera"}
             onPress={handleStart}
-            accessibilityRole="button"
             accessibilityLabel="Start camera capture"
-          >
-            <Text style={styles.primaryText}>
-              {state === "granted" ? "Open camera" : "Request camera"}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+          />
+          <Button
+            variant="secondary"
+            label="DEV: simulate"
             onPress={handleSimulate}
-            accessibilityRole="button"
             accessibilityLabel="Use simulated capture (development fallback)"
-          >
-            <Text style={styles.secondaryText}>DEV: simulate</Text>
-          </Pressable>
+          />
         </View>
-        <Pressable
+        <Button
+          variant="link"
+          label="Cancel"
           onPress={onCancel}
-          style={({ pressed }) => [styles.cancelBtn, pressed && styles.pressed]}
-          accessibilityRole="button"
           accessibilityLabel="Cancel capture"
-        >
-          <Text style={styles.cancelText}>Cancel</Text>
-        </Pressable>
+        />
       </View>
     );
   }
@@ -139,31 +124,25 @@ export function CameraCapture({
           <CameraView ref={camRef} style={styles.camera} facing="back" />
         </View>
         <View style={styles.btnRow}>
-          <Pressable
-            style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+          <Button
+            variant="primary"
+            label="Capture"
             onPress={handleCapture}
-            accessibilityRole="button"
             accessibilityLabel="Capture photo"
-          >
-            <Text style={styles.primaryText}>Capture</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+          />
+          <Button
+            variant="secondary"
+            label="DEV: simulate"
             onPress={handleSimulate}
-            accessibilityRole="button"
             accessibilityLabel="Use simulated capture"
-          >
-            <Text style={styles.secondaryText}>DEV: simulate</Text>
-          </Pressable>
+          />
         </View>
-        <Pressable
+        <Button
+          variant="link"
+          label="Cancel"
           onPress={onCancel}
-          style={({ pressed }) => [styles.cancelBtn, pressed && styles.pressed]}
-          accessibilityRole="button"
           accessibilityLabel="Cancel capture"
-        >
-          <Text style={styles.cancelText}>Cancel</Text>
-        </Pressable>
+        />
       </View>
     );
   }
@@ -176,31 +155,25 @@ export function CameraCapture({
         <Image source={{ uri }} style={styles.preview} resizeMode="cover" />
       )}
       <View style={styles.btnRow}>
-        <Pressable
-          style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+        <Button
+          variant="primary"
+          label="Save photo"
           onPress={handleConfirm}
-          accessibilityRole="button"
           accessibilityLabel="Save this photo"
-        >
-          <Text style={styles.primaryText}>Save photo</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+        />
+        <Button
+          variant="secondary"
+          label="Retake"
           onPress={handleRetake}
-          accessibilityRole="button"
           accessibilityLabel="Retake photo"
-        >
-          <Text style={styles.secondaryText}>Retake</Text>
-        </Pressable>
+        />
       </View>
-      <Pressable
+      <Button
+        variant="link"
+        label="Cancel"
         onPress={onCancel}
-        style={({ pressed }) => [styles.cancelBtn, pressed && styles.pressed]}
-        accessibilityRole="button"
         accessibilityLabel="Cancel without saving"
-      >
-        <Text style={styles.cancelText}>Cancel</Text>
-      </Pressable>
+      />
     </View>
   );
 }
@@ -213,16 +186,16 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.text,
   },
   denied: {
     padding: 12,
-    backgroundColor: "#FEF3C7",
+    backgroundColor: colors.warnBg,
     borderRadius: 8,
     gap: 8,
   },
   deniedText: {
-    color: "#92400E",
+    color: colors.warn,
     fontSize: 13,
   },
   cameraWrap: {
@@ -241,31 +214,4 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
   },
-  primaryBtn: {
-    flex: 1,
-    backgroundColor: "#111827",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  primaryText: { color: "#FFFFFF", fontWeight: "700" },
-  secondaryBtn: {
-    flex: 1,
-    backgroundColor: "#F3F4F6",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  secondaryText: { color: "#111827", fontWeight: "600" },
-  cancelBtn: {
-    minHeight: 44,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cancelText: { color: "#6B7280", fontWeight: "600" },
-  pressed: { opacity: 0.7 },
 });

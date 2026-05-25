@@ -60,17 +60,28 @@ For real camera + accelerometer + location capture, use a physical device or the
 ## How to run tests
 
 ```bash
-npm test
+npm test                # run the full suite
+npm run test:coverage   # run with coverage report
 ```
 
-Targets only pure domain logic (the spec's "highest-risk business logic"). 47 cases across 4 suites cover the 9 minimum-coverage areas in §14.
+**224 tests across 32 suites**, organized by layer:
+
+- **Domain (pure logic)** — 9 risk areas from §14 plus filter/scope/summary edge cases (~94% coverage).
+- **Data** — mocked API, AsyncStorage retry queue, deterministic seed (~98% coverage).
+- **Analytics** — track() abstraction + event log (~100%).
+- **Native hooks** — camera permission, location capture, accelerometer with mocked Expo modules (~99%).
+- **View models** — React Query hooks via QueryClientProvider wrapper (~98%).
+- **Components** — Badge, Button, Section, SheetHeader, FilterBar, SiteRow, SummaryHeader, StateViews, capture panels, sheets, and WorkboardScreen (smoke + interaction).
+
+A `coverageThreshold` gate at 90% statements/lines is configured in `package.json` so regressions fail the build.
 
 ## Validation commands run
 
 | Command | Result |
 |---|---|
 | `npm run typecheck` | ✅ Pass — no errors |
-| `npm test` | ✅ Pass — 47 tests, 4 suites |
+| `npm test` | ✅ Pass — **224 tests, 32 suites** |
+| `npm run test:coverage` | ✅ **90.86% statements · 91.25% lines** (gate: 90%) |
 | `npm run lint` | ✅ Pass — 0 errors, 0 warnings |
 | `npx expo start` | ✅ Boots, bundle compiles |
 

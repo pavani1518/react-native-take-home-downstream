@@ -3,18 +3,13 @@
 
 import { CameraView } from "expo-camera";
 import React, { useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { classifyScan } from "../domain";
 import { track } from "../analytics";
 import { openAppSettings } from "../native/permissions";
 import { useCameraPermissionState } from "../native/useCameraPermission";
+import { Button, colors } from "./ui";
 
 export function ScannerCapture({
   visitId,
@@ -88,22 +83,17 @@ export function ScannerCapture({
           <Text style={styles.codeText}>Scanned: {scannedValue}</Text>
         </View>
         <View style={styles.btnRow}>
-          <Pressable
+          <Button
+            variant="secondary"
+            label="Rescan"
             onPress={handleRescan}
-            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-            accessibilityRole="button"
             accessibilityLabel="Rescan asset"
-          >
-            <Text style={styles.secondaryText}>Rescan</Text>
-          </Pressable>
-          <Pressable
+          />
+          <Button
+            variant="primary"
+            label="Done"
             onPress={onCancel}
-            style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Done"
-          >
-            <Text style={styles.primaryText}>Done</Text>
-          </Pressable>
+          />
         </View>
       </View>
     );
@@ -131,25 +121,19 @@ export function ScannerCapture({
       )}
 
       <View style={styles.btnRow}>
-        <Pressable
+        <Button
+          variant="primary"
+          label={state === "granted" ? (active ? "Scanning…" : "Start scan") : "Request camera"}
           onPress={start}
-          style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
-          accessibilityRole="button"
           accessibilityLabel="Start scanner"
-        >
-          <Text style={styles.primaryText}>
-            {state === "granted" ? (active ? "Scanning…" : "Start scan") : "Request camera"}
-          </Text>
-        </Pressable>
+        />
         {state === "denied" && (
-          <Pressable
+          <Button
+            variant="secondary"
+            label="Settings"
             onPress={openAppSettings}
-            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-            accessibilityRole="button"
             accessibilityLabel="Open device settings"
-          >
-            <Text style={styles.secondaryText}>Settings</Text>
-          </Pressable>
+          />
         )}
       </View>
 
@@ -160,39 +144,35 @@ export function ScannerCapture({
             value={manualInput}
             onChangeText={setManualInput}
             placeholder="Scan / type asset code"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.placeholder}
             style={styles.manualInput}
             accessibilityLabel="Manually enter asset code"
             autoCorrect={false}
             autoCapitalize="characters"
           />
-          <Pressable
+          <Button
+            variant="secondary"
+            label="Submit"
             onPress={handleManual}
-            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-            accessibilityRole="button"
             accessibilityLabel="Submit manual scan"
-          >
-            <Text style={styles.secondaryText}>Submit</Text>
-          </Pressable>
+          />
         </View>
       </View>
 
-      <Pressable
+      <Button
+        variant="link"
+        label="Cancel"
         onPress={onCancel}
-        style={({ pressed }) => [styles.cancelBtn, pressed && styles.pressed]}
-        accessibilityRole="button"
         accessibilityLabel="Cancel scan"
-      >
-        <Text style={styles.cancelText}>Cancel</Text>
-      </Pressable>
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   panel: { padding: 16, gap: 12 },
-  heading: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  subtle: { fontSize: 13, color: "#6B7280" },
+  heading: { fontSize: 16, fontWeight: "700", color: colors.text },
+  subtle: { fontSize: 13, color: colors.textSubtle },
   cameraWrap: {
     height: 240,
     borderRadius: 12,
@@ -203,60 +183,37 @@ const styles = StyleSheet.create({
   placeholder: {
     height: 120,
     borderRadius: 12,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: colors.surfaceLight,
     alignItems: "center",
     justifyContent: "center",
   },
-  placeholderText: { color: "#6B7280" },
+  placeholderText: { color: colors.textSubtle },
   banner: {
     padding: 12,
     borderRadius: 8,
     gap: 4,
   },
-  match: { backgroundColor: "#DCFCE7" },
-  mismatch: { backgroundColor: "#FEE2E2" },
-  matchText: { color: "#166534", fontWeight: "700" },
-  mismatchText: { color: "#991B1B", fontWeight: "700" },
-  codeText: { color: "#374151", fontSize: 13 },
+  match: { backgroundColor: colors.successBg },
+  mismatch: { backgroundColor: colors.dangerBg },
+  matchText: { color: colors.success, fontWeight: "700" },
+  mismatchText: { color: colors.danger, fontWeight: "700" },
+  codeText: { color: colors.textMuted, fontSize: 13 },
   btnRow: { flexDirection: "row", gap: 10 },
-  primaryBtn: {
-    flex: 1,
-    backgroundColor: "#111827",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  primaryText: { color: "#FFFFFF", fontWeight: "700" },
-  secondaryBtn: {
-    flex: 1,
-    backgroundColor: "#F3F4F6",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  secondaryText: { color: "#111827", fontWeight: "600" },
-  cancelBtn: { minHeight: 44, justifyContent: "center", alignItems: "center" },
-  cancelText: { color: "#6B7280", fontWeight: "600" },
-  pressed: { opacity: 0.7 },
   manual: {
     marginTop: 8,
     padding: 10,
-    backgroundColor: "#FEF3C7",
+    backgroundColor: colors.warnBg,
     borderRadius: 8,
     gap: 6,
   },
-  manualLabel: { color: "#92400E", fontSize: 11, fontWeight: "700", letterSpacing: 0.5 },
+  manualLabel: { color: colors.warn, fontSize: 11, fontWeight: "700", letterSpacing: 0.5 },
   manualRow: { flexDirection: "row", gap: 8 },
   manualInput: {
     flex: 1,
     minHeight: 44,
     paddingHorizontal: 10,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.background,
     borderRadius: 8,
-    color: "#111827",
+    color: colors.text,
   },
 });

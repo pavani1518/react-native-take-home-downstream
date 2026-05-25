@@ -2,10 +2,11 @@
 // Subscribes only during the active window. Cleanup is handled by useMotionCheck.
 
 import React, { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { useMotionCheck } from "../native/useMotionCheck";
 import type { MotionResult } from "../types";
+import { Button, colors } from "./ui";
 
 export function MotionCheck({
   visitId,
@@ -38,6 +39,8 @@ export function MotionCheck({
   // Ensure sensor stops if the host component unmounts mid-check.
   useEffect(() => stop, [stop]);
 
+  const isRunning = status === "active" || status === "checking-availability";
+
   return (
     <View style={styles.panel}>
       <Text style={styles.heading}>Equipment handling check</Text>
@@ -68,38 +71,28 @@ export function MotionCheck({
       </Text>
 
       <View style={styles.btnRow}>
-        {status === "idle" || status === "unavailable" ? (
-          <Pressable
-            onPress={start}
-            style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Start motion check"
-            disabled={status === "unavailable"}
-          >
-            <Text style={styles.primaryText}>Start</Text>
-          </Pressable>
-        ) : status === "done" ? (
-          <Pressable
+        {status === "done" ? (
+          <Button
+            variant="secondary"
+            label="Run again"
             onPress={reset}
-            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-            accessibilityRole="button"
             accessibilityLabel="Run motion check again"
-          >
-            <Text style={styles.secondaryText}>Run again</Text>
-          </Pressable>
+          />
         ) : (
-          <View style={styles.primaryBtnDisabled}>
-            <Text style={styles.primaryText}>Running…</Text>
-          </View>
+          <Button
+            variant="primary"
+            label={isRunning ? "Running…" : "Start"}
+            onPress={start}
+            disabled={isRunning || status === "unavailable"}
+            accessibilityLabel="Start motion check"
+          />
         )}
-        <Pressable
+        <Button
+          variant="secondary"
+          label="Close"
           onPress={onCancel}
-          style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-          accessibilityRole="button"
           accessibilityLabel="Close motion check"
-        >
-          <Text style={styles.secondaryText}>Close</Text>
-        </Pressable>
+        />
       </View>
     </View>
   );
@@ -107,51 +100,21 @@ export function MotionCheck({
 
 const styles = StyleSheet.create({
   panel: { padding: 16, gap: 12 },
-  heading: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  subtle: { fontSize: 13, color: "#6B7280" },
+  heading: { fontSize: 16, fontWeight: "700", color: colors.text },
+  subtle: { fontSize: 13, color: colors.textSubtle },
   warn: {
     padding: 12,
-    backgroundColor: "#FEF3C7",
+    backgroundColor: colors.warnBg,
     borderRadius: 8,
   },
-  warnText: { color: "#92400E", fontSize: 13 },
+  warnText: { color: colors.warn, fontSize: 13 },
   progressTrack: {
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: colors.neutralBg,
     overflow: "hidden",
   },
-  progressFill: { height: 10, backgroundColor: "#1E40AF" },
-  progressText: { fontSize: 13, color: "#374151" },
+  progressFill: { height: 10, backgroundColor: colors.info },
+  progressText: { fontSize: 13, color: colors.textMuted },
   btnRow: { flexDirection: "row", gap: 10 },
-  primaryBtn: {
-    flex: 1,
-    backgroundColor: "#111827",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  primaryBtnDisabled: {
-    flex: 1,
-    backgroundColor: "#6B7280",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  primaryText: { color: "#FFFFFF", fontWeight: "700" },
-  secondaryBtn: {
-    flex: 1,
-    backgroundColor: "#F3F4F6",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  secondaryText: { color: "#111827", fontWeight: "600" },
-  pressed: { opacity: 0.7 },
 });

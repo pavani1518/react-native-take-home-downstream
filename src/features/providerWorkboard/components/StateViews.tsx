@@ -1,5 +1,6 @@
 import React from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { Button, colors } from "./ui";
 
 export function LoadingView() {
   return (
@@ -30,14 +31,14 @@ export function ErrorView({
     <View style={styles.center} accessibilityLiveRegion="assertive">
       <Text style={styles.title}>Something went wrong</Text>
       <Text style={styles.subtle}>{message}</Text>
-      <Pressable
-        onPress={onRetry}
-        accessibilityRole="button"
-        accessibilityLabel="Retry"
-        style={({ pressed }) => [styles.retry, pressed && styles.retryPressed]}
-      >
-        <Text style={styles.retryText}>Retry</Text>
-      </Pressable>
+      <View style={styles.retryWrap}>
+        <Button
+          variant="primary"
+          label="Retry"
+          onPress={onRetry}
+          accessibilityLabel="Retry"
+        />
+      </View>
     </View>
   );
 }
@@ -53,28 +54,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.text,
   },
   subtle: {
     fontSize: 14,
-    color: "#6B7280",
+    color: colors.textSubtle,
     textAlign: "center",
   },
-  retry: {
+  retryWrap: {
     marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: "#111827",
-    borderRadius: 10,
-    minHeight: 44,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  retryPressed: {
-    opacity: 0.7,
-  },
-  retryText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
+    minWidth: 140,
   },
 });

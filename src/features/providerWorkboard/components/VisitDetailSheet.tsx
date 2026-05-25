@@ -20,6 +20,13 @@ import { CameraCapture } from "./CameraCapture";
 import { ScannerCapture } from "./ScannerCapture";
 import { MotionCheck } from "./MotionCheck";
 import {
+  Button,
+  Section,
+  SheetHeader,
+  colors,
+  toneForVisitStatus,
+} from "./ui";
+import {
   evidenceChecklist,
   getEligibleActions,
   canComplete,
@@ -35,6 +42,7 @@ import {
 import { useLocation } from "../native/useLocation";
 import type {
   AssetScan,
+  EligibleAction,
   MotionSample,
   ServiceVisit,
   VisitActionId,
@@ -180,19 +188,11 @@ export function VisitDetailSheet({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.sheet} edges={["top", "left", "right", "bottom"]}>
-        <View style={styles.headerBar}>
-          <Pressable
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel="Close visit details"
-            style={({ pressed }) => [styles.closeBtn, pressed && styles.pressed]}
-            hitSlop={10}
-          >
-            <Text style={styles.closeText}>Close</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>Visit</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <SheetHeader
+          title="Visit"
+          onClose={onClose}
+          accessibilityLabel="Close visit details"
+        />
 
         {mode === "capture" && (
           <CameraCapture
@@ -241,12 +241,15 @@ export function VisitDetailSheet({
               value={blockedReason}
               onChangeText={setBlockedReason}
               placeholder="e.g. Customer site closed for audit"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.placeholder}
               accessibilityLabel="Blocked reason"
               multiline
             />
             <View style={styles.btnRow}>
-              <Pressable
+              <Button
+                variant="danger"
+                label="Confirm"
+                disabled={!blockedReason.trim()}
                 onPress={() => {
                   Alert.alert(
                     "Confirm blocking visit",
@@ -257,25 +260,13 @@ export function VisitDetailSheet({
                     ]
                   );
                 }}
-                style={({ pressed }) => [
-                  styles.dangerBtn,
-                  pressed && styles.pressed,
-                  !blockedReason.trim() && styles.disabled,
-                ]}
-                disabled={!blockedReason.trim()}
-                accessibilityRole="button"
                 accessibilityLabel="Confirm and report blocked"
-              >
-                <Text style={styles.primaryText}>Confirm</Text>
-              </Pressable>
-              <Pressable
+              />
+              <Button
+                variant="secondary"
+                label="Cancel"
                 onPress={() => setMode("details")}
-                style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-                accessibilityRole="button"
-                accessibilityLabel="Cancel"
-              >
-                <Text style={styles.secondaryText}>Cancel</Text>
-              </Pressable>
+              />
             </View>
           </View>
         )}
@@ -283,7 +274,7 @@ export function VisitDetailSheet({
         {mode === "details" && (
           <ScrollView contentContainerStyle={styles.body}>
             <View style={styles.badgeRow}>
-              <Badge tone={visit.status === "blocked" ? "danger" : visit.status === "completed" ? "success" : "info"}>
+              <Badge tone={toneForVisitStatus(visit.status)}>
                 {visit.status.replace("_", " ")}
               </Badge>
               <Badge tone="neutral">{visit.serviceType}</Badge>
@@ -363,14 +354,11 @@ export function VisitDetailSheet({
                 </View>
               )}
               <View style={styles.btnRow}>
-                <Pressable
+                <Button
+                  variant="secondary"
+                  label="Capture evidence"
                   onPress={() => setMode("capture")}
-                  style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Capture evidence"
-                >
-                  <Text style={styles.secondaryText}>Capture evidence</Text>
-                </Pressable>
+                />
               </View>
             </Section>
 
@@ -383,14 +371,11 @@ export function VisitDetailSheet({
                 <Text style={styles.subtle}>No scan recorded yet.</Text>
               )}
               <View style={styles.btnRow}>
-                <Pressable
+                <Button
+                  variant="secondary"
+                  label={scan ? "Rescan asset" : "Scan asset"}
                   onPress={() => setMode("scan")}
-                  style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Scan asset"
-                >
-                  <Text style={styles.secondaryText}>{scan ? "Rescan asset" : "Scan asset"}</Text>
-                </Pressable>
+                />
               </View>
             </Section>
 
@@ -405,14 +390,11 @@ export function VisitDetailSheet({
                 <Text style={styles.subtle}>Optional for this visit.</Text>
               )}
               <View style={styles.btnRow}>
-                <Pressable
+                <Button
+                  variant="secondary"
+                  label={motion ? "Run again" : "Run motion check"}
                   onPress={() => setMode("motion")}
-                  style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Run motion check"
-                >
-                  <Text style={styles.secondaryText}>{motion ? "Run again" : "Run motion check"}</Text>
-                </Pressable>
+                />
               </View>
             </Section>
 
@@ -434,10 +416,9 @@ export function VisitDetailSheet({
             {actions.map((a) => (
               <ActionButton
                 key={a.id}
-                id={a.id}
-                enabled={a.enabled && pendingAction === null}
+                action={a}
                 pending={pendingAction === a.id}
-                reason={a.reason}
+                blockedByPending={pendingAction !== null}
                 onPress={() => handleAction(a.id)}
               />
             ))}
@@ -448,39 +429,37 @@ export function VisitDetailSheet({
   );
 }
 
+// ActionButton uses the shared Button primitive but layered with a "reason"
+// note when the action is disabled. Kept local because the wrap + reason
+// affordance is specific to the visit actions row.
 function ActionButton({
-  id,
-  enabled,
+  action,
   pending,
-  reason,
+  blockedByPending,
   onPress,
 }: {
-  id: VisitActionId;
-  enabled: boolean;
+  action: EligibleAction;
   pending: boolean;
-  reason?: string;
+  blockedByPending: boolean;
   onPress: () => void;
 }) {
-  const label = ACTION_LABELS[id];
-  const destructive = id === "report_blocked";
+  const label = ACTION_LABELS[action.id];
+  const destructive = action.id === "report_blocked";
+  const enabled = action.enabled && !blockedByPending;
   return (
     <View style={styles.actionWrap}>
-      <Pressable
+      <Button
+        variant={destructive ? "danger" : "primary"}
+        label={label}
         onPress={onPress}
-        disabled={!enabled || pending}
-        style={({ pressed }) => [
-          styles.actionBtn,
-          destructive ? styles.actionBtnDanger : styles.actionBtnPrimary,
-          (!enabled || pending) && styles.disabled,
-          pressed && styles.pressed,
-        ]}
-        accessibilityRole="button"
+        disabled={!enabled}
+        pending={pending}
+        fullHeight
         accessibilityLabel={label}
-        accessibilityState={{ disabled: !enabled || pending, busy: pending }}
-      >
-        <Text style={styles.primaryText}>{pending ? "Working…" : label}</Text>
-      </Pressable>
-      {!enabled && reason && <Text style={styles.reason}>{reason}</Text>}
+      />
+      {!enabled && action.reason && (
+        <Text style={styles.reason}>{action.reason}</Text>
+      )}
     </View>
   );
 }
@@ -492,153 +471,67 @@ const ACTION_LABELS: Record<VisitActionId, string> = {
   retry_failed_upload: "Retry failed uploads",
 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  sheet: { flex: 1, backgroundColor: "#FFFFFF" },
-  headerBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
-    flex: 1,
-    textAlign: "center",
-  },
-  headerSpacer: {
-    width: 60,
-    minHeight: 44,
-  },
-  closeBtn: {
-    minWidth: 60,
-    minHeight: 44,
-    justifyContent: "center",
-    alignItems: "flex-start",
-    paddingHorizontal: 12,
-  },
-  closeText: { color: "#1E40AF", fontWeight: "700" },
+  sheet: { flex: 1, backgroundColor: colors.background },
   pressed: { opacity: 0.6 },
   body: { padding: 16, paddingBottom: 24 },
   stickyFooter: {
     padding: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
+    borderTopColor: colors.divider,
+    backgroundColor: colors.background,
     gap: 8,
   },
   footerBlocker: {
     fontSize: 12,
-    color: "#92400E",
+    color: colors.warn,
     fontWeight: "600",
   },
   badgeRow: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
-  section: { marginTop: 16 },
-  sectionTitle: {
-    fontSize: 12,
-    color: "#6B7280",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 6,
-    fontWeight: "700",
-  },
-  bodyText: { fontSize: 15, color: "#111827" },
-  subtle: { fontSize: 13, color: "#6B7280", marginTop: 2 },
-  warn: { fontSize: 14, color: "#92400E", marginTop: 2 },
-  itemDone: { fontSize: 14, color: "#166534", marginTop: 4 },
-  itemTodo: { fontSize: 14, color: "#374151", marginTop: 4 },
+  bodyText: { fontSize: 15, color: colors.text },
+  subtle: { fontSize: 13, color: colors.textSubtle, marginTop: 2 },
+  warn: { fontSize: 14, color: colors.warn, marginTop: 2 },
+  itemDone: { fontSize: 14, color: colors.success, marginTop: 4 },
+  itemTodo: { fontSize: 14, color: colors.textMuted, marginTop: 4 },
   evidenceItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 6,
     borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+    borderTopColor: colors.dividerLight,
     gap: 8,
   },
-  evidenceItemText: { fontSize: 13, color: "#374151" },
+  evidenceItemText: { fontSize: 13, color: colors.textMuted },
   retryItemBtn: {
     minHeight: 44,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: "#FEE2E2",
+    backgroundColor: colors.dangerBg,
     justifyContent: "center",
     alignItems: "center",
   },
-  retryItemText: { color: "#991B1B", fontWeight: "700", fontSize: 13 },
+  retryItemText: { color: colors.danger, fontWeight: "700", fontSize: 13 },
   btnRow: { flexDirection: "row", gap: 10, marginTop: 8 },
-  primaryBtn: {
-    flex: 1,
-    backgroundColor: "#111827",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  dangerBtn: {
-    flex: 1,
-    backgroundColor: "#991B1B",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  primaryText: { color: "#FFFFFF", fontWeight: "700" },
-  secondaryBtn: {
-    flex: 1,
-    backgroundColor: "#F3F4F6",
-    minHeight: 44,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  secondaryText: { color: "#111827", fontWeight: "600" },
-  disabled: { opacity: 0.5 },
   actionWrap: { gap: 2 },
-  actionBtn: {
-    minHeight: 48,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  actionBtnPrimary: { backgroundColor: "#111827" },
-  actionBtnDanger: { backgroundColor: "#991B1B" },
-  reason: { fontSize: 12, color: "#6B7280", marginLeft: 4 },
+  reason: { fontSize: 12, color: colors.textSubtle, marginLeft: 4 },
   errorBanner: {
     padding: 10,
-    backgroundColor: "#FEE2E2",
+    backgroundColor: colors.dangerBg,
     borderRadius: 8,
     marginVertical: 6,
   },
-  errorText: { color: "#991B1B", fontWeight: "600" },
+  errorText: { color: colors.danger, fontWeight: "600" },
   blockedPanel: { padding: 16, gap: 12 },
-  heading: { fontSize: 16, fontWeight: "700", color: "#111827" },
+  heading: { fontSize: 16, fontWeight: "700", color: colors.text },
   input: {
     minHeight: 88,
     padding: 12,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: colors.surfaceLight,
     borderRadius: 10,
     fontSize: 14,
-    color: "#111827",
+    color: colors.text,
     textAlignVertical: "top",
   },
 });

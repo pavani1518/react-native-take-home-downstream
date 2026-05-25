@@ -1,22 +1,23 @@
+// Badge — uses the centralized Tone tokens from ui/theme.
+
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-
-type Tone = "neutral" | "info" | "warn" | "danger" | "success";
+import { colors, type Tone } from "./ui";
 
 const TONE_BG: Record<Tone, string> = {
-  neutral: "#E5E7EB",
-  info: "#DBEAFE",
-  warn: "#FEF3C7",
-  danger: "#FEE2E2",
-  success: "#DCFCE7",
+  neutral: colors.neutralBg,
+  info: colors.infoBg,
+  warn: colors.warnBg,
+  danger: colors.dangerBg,
+  success: colors.successBg,
 };
 
 const TONE_FG: Record<Tone, string> = {
-  neutral: "#374151",
-  info: "#1E40AF",
-  warn: "#92400E",
-  danger: "#991B1B",
-  success: "#166534",
+  neutral: colors.textMuted,
+  info: colors.info,
+  warn: colors.warn,
+  danger: colors.danger,
+  success: colors.success,
 };
 
 export function Badge({
